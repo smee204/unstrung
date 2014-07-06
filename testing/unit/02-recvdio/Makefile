@@ -14,6 +14,8 @@ check::	part01 part02 part03 part04
 part01: recv-01
 	@mkdir -p ../OUTPUTS
 	@echo TEST01: PLAINND
+	file recv-01
+	ldd recv-01
 	./recv-01 ../INPUTS/plainnd.pcap | tee ../OUTPUTS/recv-01-output.raw | diff -B - recv-01-output.txt
 	tcpdump -t -n -r ../OUTPUTS/recv-01-plainnd.pcap -s 0 | diff -B - recv-01-plainnd-out.txt
 
