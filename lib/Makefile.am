@@ -1,0 +1,1 @@
+SUBDIRS = libfakeiface libndmgmt libnetlink libosw

@@ -1,0 +1,6 @@
+EXTRA_DIST = autogen.sh
+SUBDIRS = lib programs
+
+DISTCHECK_CONFIGURE_FLAGS=
+
+CLEANFILES = *~
