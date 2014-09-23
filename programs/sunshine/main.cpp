@@ -115,9 +115,9 @@ int main(int argc, char *argv[])
     tzset();
     time_t now = time(NULL);
     char *today = ctime(&now);
-    deb->info("PANDORA unstrung version %u.%u (%s) starting at %s",
+    deb->info("PANDORA unstrung version %u.%u starting at %s",
               PANDORA_VERSION_MAJOR, PANDORA_VERSION_MINOR,
-              BUILDNUMBER, today);
+              today);
 
     network_interface::scan_devices(deb, true);
     devices_scanned=true;
