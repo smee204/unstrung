@@ -169,7 +169,7 @@ public:
 	    mBestRank = dagrank;
 	};
 	void set_sequence(const unsigned int sequence) {
-	    mSequence = sequence;
+		mDTSN = sequence;
 	};
 	void set_instanceid(const unsigned int instanceid) {
 	    mInstanceid = instanceid;
@@ -217,7 +217,7 @@ public:
 
 	int  build_dio(unsigned char *buff, unsigned int buff_len, ip_subnet prefix);
 	int  build_dao(unsigned char *buff, unsigned int buff_len);
-	int  build_daoack(unsigned char *buff, unsigned int buff_len);
+	int  build_daoack(unsigned char *buff, unsigned int buff_len, unsigned short seq_num);
 
 	/* should be private */
 	ip_subnet               mPrefix;
@@ -285,7 +285,8 @@ private:
 
 	/* RiPpLe statistics */
 	enum RPL_DIO_MOP        mMode;
-	unsigned short          mSequence;
+	unsigned short          mDTSN;
+	unsigned short 			mDAOSequence;
 	unsigned int            mInstanceid;
 	unsigned int            mLifetime;      /* dag lifetime */
 	unsigned int            mVersion;
