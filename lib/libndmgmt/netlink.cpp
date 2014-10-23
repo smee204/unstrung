@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 extern "C" {
 #include <errno.h>
@@ -78,11 +79,12 @@ bool network_interface::addprefix(dag_network *dn _U_,  prefix_node &prefix)
 
     if(prefix.prefix_valid()) {
         // this would be better, but results in unreachable routes.
-        viaif = "lo";
+        viaif = "fakelowpan";
         snprintf(buf, 1024,
                  "ip -6 addr del %s dev %s", prefix.node_name(), viaif);
         debug->log("  invoking %s\n", buf);
         nisystem(buf);
+        sleep(1);
 
         snprintf(buf, 1024,
                  "ip -6 addr add %s dev %s", prefix.node_name(), viaif);
@@ -112,6 +114,7 @@ bool network_interface::add_parent_route_to_prefix(const ip_subnet &prefix,
     snprintf(buf, 1024, "ip -6 route del %s", pbuf);
     debug->log("  invoking %s\n", buf);
     nisystem(buf);
+    sleep(1);
 
     snprintf(buf, 1024,
              "ip -6 route add %s via %s dev %s src %s",
