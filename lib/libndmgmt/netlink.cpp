@@ -40,6 +40,9 @@ extern "C" {
 #include <netlink/utils.h>
 #include <netlink/ll_map.h>
 
+#include <netlink/route/link.h>
+#include <netlink/route/addr.h>
+#include <netlink/route/route.h>
 
 #include "rpl.h"
 }
@@ -60,7 +63,7 @@ network_interface *iface_factory::newnetwork_interface(const char *name, rpl_deb
 /* used by addprefix() to change system parameters */
 int network_interface::nisystem(const char *cmd)
 {
-    ::system(cmd);
+    return ::system(cmd);
 
 }
 
@@ -100,8 +103,52 @@ bool network_interface::addprefix(dag_network *dn _U_,  prefix_node &prefix)
 /* XXX do this with netlink too  */
 bool network_interface::add_parent_route_to_prefix(const ip_subnet &prefix,
                                                    const ip_address &src,
-                                                   /*const*/rpl_node &parent)
+                                                   rpl_node &parent)
 {
+	/*struct nl_sock *sock;
+	sock = nl_socket_alloc();
+	nl_connect(sock, NETLINK_ROUTE);
+
+	int ret = 0;
+	    // Create the route.
+	    struct rtnl_route* rulesRoute = rtnl_route_alloc();
+	    rtnl_route_set_iif(rulesRoute, AF_INET6); // IPV4
+
+	    // Set parameters.
+	    rtnl_route_set_scope(rulesRoute, RT_SCOPE_UNIVERSE);
+	    rtnl_route_set_table(rulesRoute, RT_TABLE_MAIN);
+	    rtnl_route_set_protocol(rulesRoute, RTPROT_STATIC);
+	    uint8_t maskTest = 16;
+	    rtnl_route_set_scope(rulesRoute, maskTest);
+
+	    // Set the destination.
+	    nl_addr* dstAddr = nl_addr_build(AF_INET6, prefix, sizeof(prefix));
+	    ret = rtnl_route_set_dst(rulesRoute, dstAddr);
+	    if(ret != 0)
+	    {
+	    	debug->log("Error in setting destination route %s",nl_geterror(ret));
+	    }
+
+	    // Set the source.
+	    	    nl_addr* srcAddr = nl_addr_build(AF_INET6, src, sizeof(src));
+	    	    ret = rtnl_route_set_src(rulesRoute, srcAddr);
+	    	    if(ret != 0)
+	    	    {
+	    	    	debug->log("Error in setting source route %s",nl_geterror(ret));
+	    	    }
+
+	    // Set the next hop.
+	    struct rtnl_nexthop* route_nexthop = rtnl_route_nh_alloc();
+	    nl_addr* gatewAddr = nl_addr_build(AF_INET6, parent.node_address(), 12);
+	    rtnl_route_nh_set_gateway(route_nexthop, gatewAddr);
+	    rtnl_route_nh_set_ifindex(route_nexthop, this->get_ifindex());
+	    rtnl_route_add_nexthop(rulesRoute, route_nexthop);
+	    ret = rtnl_route_add(m_nlSocket, rulesRoute, 0);
+	    if(ret != 0)
+	    {
+	        debug->log ("Kernel response %s", nl_geterror(ret));
+	    }*/
+
     char buf[1024];
     char pbuf[SUBNETTOT_BUF];
     char nhbuf[ADDRTOT_BUF];
@@ -112,8 +159,10 @@ bool network_interface::add_parent_route_to_prefix(const ip_subnet &prefix,
     addrtot(&src, 0, srcbuf, sizeof(nhbuf));
 
     snprintf(buf, 1024, "ip -6 route del %s", pbuf);
+
     debug->log("  invoking %s\n", buf);
-    nisystem(buf);
+    int ret = nisystem(buf);
+        	debug->log("return code %d",ret);
     sleep(1);
 
     snprintf(buf, 1024,
@@ -122,7 +171,14 @@ bool network_interface::add_parent_route_to_prefix(const ip_subnet &prefix,
              this->get_if_name(), srcbuf);
 
     debug->log("  invoking %s\n", buf);
-    nisystem(buf);
+
+    while (1){
+    	ret = nisystem(buf);
+    	debug->log("return code %d",ret);
+    	if(ret==0 || ret==512)
+    		break;
+    	sleep(1);
+    }
     ni_route_show();
 }
 
