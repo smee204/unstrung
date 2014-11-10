@@ -68,32 +68,38 @@ bool check_dag(dag_network *dag)
 }
 
 const char *pidfilename="/var/run/sunshine.pid";
-void killanydaemon(void)
-{
-    int pid;
+void killanydaemon(bool silent) {
+	int pid;
 
-    FILE *pidfile = fopen(pidfilename, "r");
-    if(!pidfile) {
-        fprintf(stderr, "could not found any running daemon\n");
-        exit(1);
-    }
+	FILE *pidfile = fopen(pidfilename, "r");
+	if (!pidfile) {
+		if (!silent) {
+			fprintf(stderr, "could not found any running daemon\n");
+			exit(1);
+		}
+		return;
+	}
 
-    if(fscanf(pidfile, "%u", &pid) != 1) {
-        fprintf(stderr, "could not decipher pid file contents\n");
-        exit(2);
-    }
-    fclose(pidfile);
+	if (fscanf(pidfile, "%u", &pid) != 1) {
+		if (!silent) {
+			fprintf(stderr, "could not decipher pid file contents\n");
+			exit(2);
+		}
+		return;
+	}
+	fclose(pidfile);
+	unlink(pidfilename);
 
-    printf("Killing process %u\n", pid);
+	if (!silent) {
+		printf("Killing process %u\n", pid);
+	}
 
-    if(kill(pid, SIGTERM) != 0) {
-        perror("kill");
-        exit(3);
-    }
+	if (kill(pid, SIGTERM) != 0) {
+		if (!silent) {
+		perror("kill");
+		}
+	}
 
-    unlink(pidfilename);
-
-    exit(0);
 }
 
 int main(int argc, char *argv[])
@@ -137,7 +143,7 @@ int main(int argc, char *argv[])
             break;
 
         case 'K':
-            killanydaemon();
+            killanydaemon(false);
             exit(0);
 
         case 't':
@@ -233,6 +239,7 @@ int main(int argc, char *argv[])
 
     /* should check for already running instance before stomping PID file */
 
+    killanydaemon(true);
     if(bedaemon) {
         if(daemon(0, 1)!=0) {
             perror("daemon");

@@ -158,6 +158,7 @@ bool network_interface::add_parent_route_to_prefix(const ip_subnet &prefix,
     addrtot(&parent.node_address(), 0, nhbuf, sizeof(nhbuf));
     addrtot(&src, 0, srcbuf, sizeof(nhbuf));
 
+    while (1){
     snprintf(buf, 1024, "ip -6 route del %s", pbuf);
 
     debug->log("  invoking %s\n", buf);
@@ -172,10 +173,9 @@ bool network_interface::add_parent_route_to_prefix(const ip_subnet &prefix,
 
     debug->log("  invoking %s\n", buf);
 
-    while (1){
     	ret = nisystem(buf);
     	debug->log("return code %d",ret);
-    	if(ret==0 || ret==512)
+    	if(ret==0)
     		break;
     	sleep(1);
     }
