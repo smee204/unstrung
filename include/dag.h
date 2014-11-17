@@ -230,6 +230,8 @@ private:
 	static unsigned char           optbuff[256];
 	static unsigned int            optlen;
 
+	bool newer_dtsn(unsigned int seq);
+
     /* space to format various messages */
     int append_suboption(unsigned char *buff,
                              unsigned int buff_len,

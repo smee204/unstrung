@@ -420,6 +420,33 @@ void dag_network::add_all_interfaces(void)
     network_interface::foreach_if(addselfprefix_each, this);
 }
 
+bool dag_network::newer_dtsn(unsigned int seq)
+{
+    unsigned int low8bit = mDTSN & 0xff;
+    int diff = (seq - low8bit);
+
+    /* if the seq > low8bit, everything is good */
+    if(diff > 0 && diff < 128) {
+        return true;
+    }
+
+    /* if the -128 < diff < 0, then we have a wrap backwards */
+    if(diff < 0 && diff > -128) {
+        return false;
+    }
+
+    /*
+     * if there is too much space between them, then maybe it is an
+     * old sequence number being replayed at us.
+     */
+    if((low8bit < 128) &&
+       (seq > 128) &&
+       (diff > 128)) {
+        return false;
+    }
+
+    return true;
+}
 
 void dag_network::potentially_lower_rank(rpl_node &peer,
                                          network_interface *iface,
@@ -442,18 +469,16 @@ void dag_network::potentially_lower_rank(rpl_node &peer,
                    peer.node_name(), rank);
 
     if(dag_bestparent == &peer || dag_parent == &peer) {
-	debug->verbose("  But it is the same parent as before: ignored\n");
+    	debug->verbose("  But it is the same parent as before: ignored\n");
+    	mDTSN     = dio->rpl_dtsn;
         this->mStats[PS_SAME_PARENT_IGNORED]++;
-	return;
+        return;
     }
-    /* XXX
-     * this is actually quite a big deal (SEE rfc6550), setting my RANK.
-     * just fake it for now by adding 1.
-     */
-    if(mDTSN != INVALID_SEQUENCE && mDTSN >= dio->rpl_dtsn) {
-	debug->verbose("  Same sequence number, ignore\n");
+
+    if(mDTSN != INVALID_SEQUENCE && !newer_dtsn(dio->rpl_dtsn)) {
+    	debug->verbose("  Same sequence number, ignore\n");
         this->mStats[PS_SAME_SEQUENCE_IGNORED]++;
-	return;
+        return;
     }
 
     mDTSN     = dio->rpl_dtsn;
