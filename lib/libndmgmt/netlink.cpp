@@ -105,49 +105,6 @@ bool network_interface::add_parent_route_to_prefix(const ip_subnet &prefix,
                                                    const ip_address &src,
                                                    rpl_node &parent)
 {
-	/*struct nl_sock *sock;
-	sock = nl_socket_alloc();
-	nl_connect(sock, NETLINK_ROUTE);
-
-	int ret = 0;
-	    // Create the route.
-	    struct rtnl_route* rulesRoute = rtnl_route_alloc();
-	    rtnl_route_set_iif(rulesRoute, AF_INET6); // IPV4
-
-	    // Set parameters.
-	    rtnl_route_set_scope(rulesRoute, RT_SCOPE_UNIVERSE);
-	    rtnl_route_set_table(rulesRoute, RT_TABLE_MAIN);
-	    rtnl_route_set_protocol(rulesRoute, RTPROT_STATIC);
-	    uint8_t maskTest = 16;
-	    rtnl_route_set_scope(rulesRoute, maskTest);
-
-	    // Set the destination.
-	    nl_addr* dstAddr = nl_addr_build(AF_INET6, prefix, sizeof(prefix));
-	    ret = rtnl_route_set_dst(rulesRoute, dstAddr);
-	    if(ret != 0)
-	    {
-	    	debug->log("Error in setting destination route %s",nl_geterror(ret));
-	    }
-
-	    // Set the source.
-	    	    nl_addr* srcAddr = nl_addr_build(AF_INET6, src, sizeof(src));
-	    	    ret = rtnl_route_set_src(rulesRoute, srcAddr);
-	    	    if(ret != 0)
-	    	    {
-	    	    	debug->log("Error in setting source route %s",nl_geterror(ret));
-	    	    }
-
-	    // Set the next hop.
-	    struct rtnl_nexthop* route_nexthop = rtnl_route_nh_alloc();
-	    nl_addr* gatewAddr = nl_addr_build(AF_INET6, parent.node_address(), 12);
-	    rtnl_route_nh_set_gateway(route_nexthop, gatewAddr);
-	    rtnl_route_nh_set_ifindex(route_nexthop, this->get_ifindex());
-	    rtnl_route_add_nexthop(rulesRoute, route_nexthop);
-	    ret = rtnl_route_add(m_nlSocket, rulesRoute, 0);
-	    if(ret != 0)
-	    {
-	        debug->log ("Kernel response %s", nl_geterror(ret));
-	    }*/
 
     char buf[1024];
     char pbuf[SUBNETTOT_BUF];
@@ -174,11 +131,21 @@ bool network_interface::add_parent_route_to_prefix(const ip_subnet &prefix,
     debug->log("  invoking %s\n", buf);
 
     	ret = nisystem(buf);
-    	debug->log("return code %d",ret);
+    	debug->log("return code %d \n",ret);
     	if(ret==0)
     		break;
     	sleep(1);
     }
+    sleep(1);
+
+    /* try setting default route. Might be more useful */
+    snprintf(buf, 1024,
+            "ip -6 route add default via %s dev %s src %s",
+            nhbuf, this->get_if_name(), srcbuf);
+    debug->log("  invoking %s\n", buf);
+
+    nisystem(buf);
+
     ni_route_show();
 }
 
