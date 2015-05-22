@@ -334,7 +334,6 @@ int network_interface::adddel_linkinfo(const struct sockaddr_nl *who,
         }
 
     case ARPHRD_IEEE802154:
-    case ARPHRD_6LOWPAN:
         addr = (unsigned char *)RTA_DATA(tb[IFLA_ADDRESS]);
         if(addr) {
             addrlen = RTA_PAYLOAD(tb[IFLA_ADDRESS]);
